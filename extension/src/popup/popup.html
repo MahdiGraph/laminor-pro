@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Laminor Pro</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <img src="../../icons/icon-48.png" width="32" height="32" alt="" />
+      <div>
+        <h1>لامینور پرو</h1>
+        <p class="sub">ابزارهای رایگان برای صفحه‌های آکورد laminor.org</p>
+      </div>
+      <span class="version" id="version"></span>
+    </header>
+
+    <section class="card">
+      <h2>تنظیمات</h2>
+      <label class="opt"><input type="checkbox" data-pref="showDiagrams" /> نمایش راهنمای انگشت‌گذاری</label>
+      <label class="opt"><input type="checkbox" data-pref="hoverDiagrams" /> نمایش دیاگرام با بردن ماوس روی آکورد</label>
+      <label class="opt"><input type="checkbox" data-pref="autoCapo" /> ساده‌سازی با کاپو به‌صورت پیش‌فرض</label>
+      <label class="opt"><input type="checkbox" data-pref="simplify" /> آکوردهای ساده به‌صورت پیش‌فرض</label>
+      <label class="opt"><input type="checkbox" data-pref="leftHanded" /> دیاگرام برای چپ‌دست‌ها</label>
+      <label class="opt"><input type="checkbox" data-pref="hideLocked" /> پنهان‌کردن دکمه‌های قفل‌شده‌ی خود سایت</label>
+      <label class="opt select">
+        نوشتن نت‌های عرضی
+        <select data-pref="notation">
+          <option value="auto">خودکار (بر اساس گام)</option>
+          <option value="sharp">همیشه با دیز (♯)</option>
+          <option value="flat">همیشه با بمل (♭)</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>گام‌های ذخیره‌شده <span class="count" id="count"></span></h2>
+      <ul class="songs" id="songs"></ul>
+      <p class="empty" id="empty" hidden>
+        هنوز گامی ذخیره نکرده‌اید. در صفحه‌ی هر آکورد، گام یا کاپوی دلخواه را انتخاب کنید و «ذخیره گام» را بزنید.
+      </p>
+    </section>
+
+    <footer class="foot">
+      <a href="https://github.com/MahdiGraph/laminor-pro" target="_blank" rel="noopener">GitHub</a>
+      <span>·</span>
+      <a href="https://github.com/MahdiGraph/laminor-pro/issues" target="_blank" rel="noopener">گزارش مشکل</a>
+      <span>·</span>
+      <span>رایگان و متن‌باز</span>
+    </footer>
+
+    <script src="../shared/storage.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "Laminor Pro",
+  "short_name": "Laminor Pro",
+  "version": "1.0.0",
+  "description": "تغییر گام، ساده‌سازی با کاپو، راهنمای انگشت‌گذاری، ذخیره گام و پرینت آکورد برای لامینور — رایگان و متن‌باز",
+  "homepage_url": "https://github.com/MahdiGraph/laminor-pro",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Laminor Pro",
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["*://laminor.org/*", "*://*.laminor.org/*", "*://laminor.ir/*", "*://*.laminor.ir/*"],
+      "js": [
+        "src/core/music.js",
+        "src/core/voicings.js",
+        "src/core/arrange.js",
+        "src/core/sheet.js",
+        "src/shared/storage.js",
+        "src/content/dom.js",
+        "src/content/diagram.js",
+        "src/content/sheet-view.js",
+        "src/content/panel.js",
+        "src/content/print.js",
+        "src/content/main.js"
+      ],
+      "css": ["src/content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "laminor-pro@mahdigraph.github.io",
+      "strict_min_version": "115.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}
