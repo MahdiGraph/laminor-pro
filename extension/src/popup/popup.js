@@ -14,6 +14,13 @@
     return node;
   }
 
+  // The popup follows the same dark mode as the laminor.org pages.
+  const system = window.matchMedia('(prefers-color-scheme: dark)');
+  function applyTheme(prefs) {
+    const dark = prefs.darkMode === 'on' || (prefs.darkMode === 'auto' && system.matches);
+    document.documentElement.toggleAttribute('data-dark', dark);
+  }
+
   async function renderPrefs() {
     const prefs = await storage.getPrefs();
     for (const input of document.querySelectorAll('[data-pref]')) {
@@ -21,6 +28,7 @@
       if (input.type === 'checkbox') input.checked = Boolean(prefs[name]);
       else input.value = prefs[name];
     }
+    applyTheme(prefs);
   }
 
   async function renderSongs() {
@@ -62,6 +70,8 @@
     if (prefs) renderPrefs();
     if (songChanged) renderSongs();
   });
+
+  system.addEventListener('change', renderPrefs);
 
   renderPrefs();
   renderSongs();

@@ -1,8 +1,8 @@
 {
   "name": "laminor-pro",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "Free, open-source Chrome & Firefox extension that adds transpose, capo simplification, chord diagrams, saved keys and print/PDF to laminor.org chord pages.",
+  "description": "Free, open-source Chrome & Firefox extension that adds transpose, capo simplification, chord diagrams, auto-scroll, saved keys and print/PDF to laminor.org chord pages.",
   "license": "MIT",
   "repository": {
     "type": "git",

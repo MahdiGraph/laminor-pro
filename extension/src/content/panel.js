@@ -18,8 +18,8 @@
 
   /**
    * actions: { setTranspose, stepTranspose, setCapo, toggleAutoCapo,
-   *            toggleSimplify, toggleDiagrams, setNotation, save, forget,
-   *            reset, print, nextVoicing }
+   *            toggleSimplify, toggleDiagrams, toggleScroll, toggleDark,
+   *            setNotation, save, forget, reset, print, nextVoicing }
    */
   function createPanel(actions) {
     const keys = h('div', { class: 'lp-keys', role: 'group', 'aria-label': 'انتخاب گام' });
@@ -38,6 +38,7 @@
 
     const diagramsBtn = h('button', { type: 'button', class: 'lp-btn lp-toggle', onclick: () => actions.toggleDiagrams() }, '🎸 راهنمای انگشت‌گذاری');
     const simplifyBtn = h('button', { type: 'button', class: 'lp-btn lp-toggle', title: 'آکوردهای پیچیده (مثل Cmaj7 یا Asus4) به ساده‌ترین شکل قابل‌اجرا تبدیل می‌شوند', onclick: () => actions.toggleSimplify() }, '🔰 آکوردهای ساده');
+    const scrollBtn = h('button', { type: 'button', class: 'lp-btn lp-toggle', title: 'صفحه هنگام نواختن خودش پایین می‌رود؛ سرعت را از نوار پایین صفحه تنظیم کنید', onclick: () => actions.toggleScroll() }, '⏬ اسکرول خودکار');
     const notation = h(
       'select',
       { class: 'lp-select', 'aria-label': 'نحوه نوشتن نت‌ها', title: 'نحوه نوشتن نت‌های عرضی', onchange: (e) => actions.setNotation(e.target.value) },
@@ -50,13 +51,14 @@
     const resetBtn = h('button', { type: 'button', class: 'lp-btn', title: 'بازگشت به آکوردهای اصلی', onclick: () => actions.reset() }, '↺ اصلی');
     const printBtn = h('button', { type: 'button', class: 'lp-btn', onclick: () => actions.print() }, '🖨️ پرینت / PDF');
     const status = h('span', { class: 'lp-status', 'aria-live': 'polite' });
+    const themeBtn = h('button', { type: 'button', class: 'lp-btn lp-theme', onclick: () => actions.toggleDark() });
 
     const diagrams = h('div', { class: 'lp-diagrams' });
 
     const el = h(
       'section',
       { class: 'lp-panel', dir: 'rtl', 'aria-label': 'ابزارهای لامینور پرو' },
-      h('div', { class: 'lp-head' }, h('span', { class: 'lp-brand' }, 'لامینور پرو'), status),
+      h('div', { class: 'lp-head' }, h('span', { class: 'lp-brand' }, 'لامینور پرو'), status, themeBtn),
       h(
         'div',
         { class: 'lp-row' },
@@ -65,7 +67,7 @@
         keys
       ),
       h('div', { class: 'lp-row' }, h('span', { class: 'lp-label' }, 'کاپو'), capoSelect, autoCapo, capoInfo),
-      h('div', { class: 'lp-row lp-tools' }, diagramsBtn, simplifyBtn, notation, h('span', { class: 'lp-spacer' }), saveBtn, forgetBtn, resetBtn, printBtn),
+      h('div', { class: 'lp-row lp-tools' }, diagramsBtn, simplifyBtn, scrollBtn, notation, h('span', { class: 'lp-spacer' }), saveBtn, forgetBtn, resetBtn, printBtn),
       diagrams
     );
 
@@ -142,6 +144,8 @@
     }
 
     function render(view) {
+      themeBtn.textContent = view.dark ? '☀️ حالت روشن' : '🌙 حالت تاریک';
+      themeBtn.title = view.dark ? 'برگرداندن رنگ‌های روشن سایت' : 'تیره کردن همه‌ی صفحه‌های لامینور';
       keyNow.textContent = view.soundingKeyName;
       keyShift.textContent = shiftLabel(view.transpose);
       renderKeys(view);
@@ -152,6 +156,8 @@
 
       toggle(diagramsBtn, view.diagrams);
       toggle(simplifyBtn, view.simplify);
+      toggle(scrollBtn, view.scrolling);
+      scrollBtn.textContent = view.scrolling ? '⏸ توقف اسکرول' : '⏬ اسکرول خودکار';
       notation.value = view.notation;
 
       saveBtn.textContent = view.saved && !view.dirty ? '✓ ذخیره شده' : '💾 ذخیره گام';

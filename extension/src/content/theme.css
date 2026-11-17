@@ -1,0 +1,19 @@
+/*
+ * Laminor Pro — dark mode for laminor.org (on screen only: printing stays light).
+ * The site has no dark theme of its own, so the whole page is inverted with
+ * its hues kept: white becomes #1a1a1a, text light gray, and the blue chords
+ * stay blue. Photos, videos and embeds get the exact inverse filter, so they
+ * keep their real colours (SVG images such as the logo are icons: they flip
+ * with the text). Filtering the root element keeps position:fixed working.
+ * If the site ever ships its own dark theme (class "dark"), it wins.
+ */
+@media screen {
+  html[data-lp-dark]:not(.dark) {
+    filter: invert(0.9) hue-rotate(180deg);
+  }
+
+  /* invert(0.9) maps c to 0.9 − 0.8c; invert(1) then contrast(1.25) undoes it. */
+  html[data-lp-dark]:not(.dark) :is(img:not([src*='.svg']), video, iframe, canvas, embed, object) {
+    filter: hue-rotate(180deg) invert(1) contrast(1.25);
+  }
+}
