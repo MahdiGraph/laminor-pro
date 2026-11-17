@@ -17,9 +17,10 @@
   function buildPrintRoot(data) {
     const sheet = data.sheet.cloneNode(true);
     sheet.removeAttribute('id');
+    sheet.removeAttribute('style');
     return h(
       'div',
-      { class: 'lp-print-root', dir: 'rtl' },
+      { class: 'lp-print-root', dir: 'rtl', 'data-lp-owned': '' },
       h('h1', { class: 'lp-print-title' }, data.title),
       data.artist ? h('div', { class: 'lp-print-artist' }, data.artist) : null,
       h('div', { class: 'lp-print-meta' }, data.meta.filter(Boolean).join('  ·  ')),
@@ -37,25 +38,33 @@
 
   function printSheet(data) {
     const html = document.documentElement;
+    // A print that never reported back (no afterprint) leaves its copy behind.
+    for (const old of document.querySelectorAll('.lp-print-root')) old.remove();
     const printRoot = buildPrintRoot(data);
     const previousTitle = document.title;
     let done = false;
 
+    const INTERACTIONS = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
     const cleanup = () => {
       if (done) return;
       done = true;
       window.removeEventListener('afterprint', cleanup);
-      html.classList.remove('lp-printing');
+      for (const type of INTERACTIONS) window.removeEventListener(type, cleanup, true);
+      html.removeAttribute('data-lp-printing');
       printRoot.remove();
       document.title = previousTitle;
     };
 
     document.body.append(printRoot);
-    html.classList.add('lp-printing');
+    html.setAttribute('data-lp-printing', '');
     // The page title becomes the default PDF file name.
     document.title = [data.title, data.artist].filter(Boolean).join(' - ');
     window.addEventListener('afterprint', cleanup);
     window.print();
+    // Browsers that don't report the end of printing: tidy up on the next
+    // interaction with the page, which the (modal) print dialog rules out
+    // while it is open.
+    if (!done) for (const type of INTERACTIONS) window.addEventListener(type, cleanup, true);
   }
 
   LP.print = { buildPrintRoot, printSheet };

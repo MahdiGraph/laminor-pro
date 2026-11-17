@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Laminor Pro",
   "short_name": "Laminor Pro",
-  "version": "1.0.0",
-  "description": "تغییر گام، ساده‌سازی با کاپو، راهنمای انگشت‌گذاری، ذخیره گام و پرینت آکورد برای لامینور — رایگان و متن‌باز",
+  "version": "1.1.0",
+  "description": "تغییر گام، ساده‌سازی با کاپو، راهنمای انگشت‌گذاری، اسکرول خودکار، حالت تاریک، ذخیره گام و پرینت برای لامینور — رایگان و متن‌باز",
   "homepage_url": "https://github.com/MahdiGraph/laminor-pro",
   "icons": {
     "16": "icons/icon-16.png",
@@ -23,6 +23,12 @@
   "content_scripts": [
     {
       "matches": ["*://laminor.org/*", "*://*.laminor.org/*", "*://laminor.ir/*", "*://*.laminor.ir/*"],
+      "js": ["src/shared/storage.js", "src/content/theme.js"],
+      "css": ["src/content/theme.css"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://laminor.org/*", "*://*.laminor.org/*", "*://laminor.ir/*", "*://*.laminor.ir/*"],
       "js": [
         "src/core/music.js",
         "src/core/voicings.js",
@@ -30,8 +36,10 @@
         "src/core/sheet.js",
         "src/shared/storage.js",
         "src/content/dom.js",
+        "src/content/site.js",
         "src/content/diagram.js",
         "src/content/sheet-view.js",
+        "src/content/scroller.js",
         "src/content/panel.js",
         "src/content/print.js",
         "src/content/main.js"

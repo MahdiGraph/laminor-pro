@@ -100,9 +100,9 @@
         i += digits[0].length;
         continue;
       }
-      // "6/9" style suffixes; a slash followed by a note name is a bass note
-      // and has already been split off by parseChord.
-      if (suffix[i] === '/' && /\d/.test(suffix[i + 1] || '')) {
+      // "6/9" and "m/maj7" style suffixes; a slash followed by a note name is
+      // a bass note and has already been split off by parseChord.
+      if (suffix[i] === '/' && /^(\d|maj|Maj|MAJ|M|Δ)/.test(suffix.slice(i + 1))) {
         i += 1;
         continue;
       }
@@ -119,7 +119,11 @@
    * extensions we can only approximate (e.g. "13" is drawn as a 7 chord).
    */
   function classifySuffix(suffix) {
-    const s = suffix.replace(/[()\s,]/g, '').replace(/♯/g, '#').replace(/♭/g, 'b');
+    const s = suffix
+      .replace(/[()\s,]/g, '')
+      .replace(/♯/g, '#')
+      .replace(/♭/g, 'b')
+      .replace(/\/(?=maj|Maj|MAJ|M|Δ)/, ''); // "m/maj7" → "mmaj7"
     const exact = (quality) => ({ quality, approx: false });
     const approx = (quality) => ({ quality, approx: true });
 
@@ -143,6 +147,7 @@
       if (rest === '9') return exact('m9');
       if (/^(add9|add2|2)$/.test(rest)) return exact('madd9');
       if (rest === '7b5') return exact('m7b5');
+      if (/^(b5|-5)$/.test(rest)) return exact('dim');
       if (/^(11|13|7.+|9.+)$/.test(rest)) return approx('m7');
       return approx('m');
     }
@@ -156,7 +161,7 @@
     if (rest === '9') return exact('9');
     if (/^(add9|add2|2)$/.test(rest)) return exact('add9');
     if (rest === 'sus2') return exact('sus2');
-    if (/^sus4?$/.test(rest)) return exact('sus4');
+    if (/^(sus4?|4)$/.test(rest)) return exact('sus4');
     if (/^7sus4?$/.test(rest)) return exact('7sus4');
     if (/^9sus4?$/.test(rest)) return approx('7sus4');
     if (/^(11|13|7.+|9.+)$/.test(rest)) return approx('7');

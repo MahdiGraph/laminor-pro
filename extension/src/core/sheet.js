@@ -1,8 +1,7 @@
 /*
  * Laminor Pro — chord sheet parser.
- * Splits the text of a chord sheet into lines and finds the chord symbols in
- * chord lines, keeping every other character (spacing included) untouched so
- * the sheet can be rebuilt exactly.
+ * Finds the chord symbols in the chord lines of a sheet, keeping every other
+ * character (spacing included) untouched so each line can be rebuilt exactly.
  */
 (function (root) {
   'use strict';
@@ -11,8 +10,12 @@
   const { parseChord } = LP.music;
 
   const LEAD_PUNCT = /^[(\[{|]+/;
-  const TRAIL_PUNCT = /[)\]}|,.:;!*]+$/;
+  // Marks that may follow a chord: "Am)", "C|", "G*", "Em_", "D/" …
+  const TRAIL_MARKS = /^[)\]}|,.:;!*&%_\-+/(]+$/;
+  // How a chord name can end; ")" only closes a "(" of the chord itself.
+  const CHORD_END = /[A-Za-z0-9#♯♭+°øΔ]$/;
   const PERSIAN = /[؀-ۿﭐ-﷿ﹰ-﻿]/;
+  const INVISIBLE = /[​-‏⁠﻿]/g;
   const NEUTRAL_TOKENS = [
     /^[|/\\\-–—_.:,;*~%()[\]{}>]+$/,
     /^[(\[]?([x×*]\s?\d+|\d+\s?[x×])[)\]]?:?$/i,
@@ -24,19 +27,40 @@
     return NEUTRAL_TOKENS.some((re) => re.test(token));
   }
 
+  function chordOf(text) {
+    return text && !PERSIAN.test(text) ? parseChord(text) : null;
+  }
+
+  /**
+   * Splits a token into leading punctuation, the chord and trailing marks:
+   * "(Am)" → "(" Am ")". The longest exact chord wins, so "C+" stays an
+   * augmented chord and "C(add9)" keeps its brackets, while "Am-" is Am
+   * followed by a mark.
+   */
   function splitToken(token) {
     const lead = (LEAD_PUNCT.exec(token) || [''])[0];
     const rest = token.slice(lead.length);
-    const trail = (TRAIL_PUNCT.exec(rest) || [''])[0];
-    return { lead, core: rest.slice(0, rest.length - trail.length), trail };
+    let fallback = null;
+    for (let end = rest.length; end > 0; end--) {
+      const trail = rest.slice(end);
+      if (trail && !TRAIL_MARKS.test(trail)) break;
+      const core = rest.slice(0, end);
+      if (!CHORD_END.test(core) && !(core.endsWith(')') && core.includes('('))) continue;
+      const chord = chordOf(core);
+      if (!chord) continue;
+      if (!chord.approx) return { lead, core, trail, chord };
+      if (!fallback) fallback = { lead, core, trail, chord };
+    }
+    return fallback || { lead, core: rest, trail: '', chord: null };
   }
 
   /**
    * Returns the segments of a chord line, or null if the line is lyrics.
    * A line counts as a chord line when chord symbols outnumber the other
-   * words (section labels and repeat marks like "x2" are ignored).
+   * words (section labels and repeat marks like "x2" are ignored). With
+   * `force` (the site itself marks the line as chords) one chord is enough.
    */
-  function parseChordLine(line) {
+  function parseChordLine(line, { force = false } = {}) {
     const tokens = [];
     const re = /\S+/g;
     let m;
@@ -46,13 +70,11 @@
     let chordCount = 0;
     let otherCount = 0;
     for (const t of tokens) {
-      const parts = splitToken(t.text);
-      t.parts = parts;
-      t.chord = !PERSIAN.test(parts.core) ? parseChord(parts.core) : null;
-      if (t.chord) chordCount++;
+      t.parts = splitToken(t.text);
+      if (t.parts.chord) chordCount++;
       else if (!isNeutral(t.text)) otherCount++;
     }
-    if (chordCount === 0 || chordCount <= otherCount) return null;
+    if (chordCount === 0 || (!force && chordCount <= otherCount)) return null;
 
     const segments = [];
     let pos = 0;
@@ -64,9 +86,9 @@
     };
     for (const t of tokens) {
       pushText(line.slice(pos, t.index));
-      if (t.chord) {
+      if (t.parts.chord) {
         pushText(t.parts.lead);
-        segments.push({ text: t.parts.core, chord: t.chord });
+        segments.push({ text: t.parts.core, chord: t.parts.chord });
         pushText(t.parts.trail);
       } else {
         pushText(t.text);
@@ -78,22 +100,29 @@
   }
 
   /**
-   * Parses a whole sheet.
+   * Parses the lines of a sheet. Each item is a string or { text, kind } where
+   * kind is the site's own reading of the line ('chords', 'text' or null).
+   * Lines the site shows as chords are trusted; the others still go through
+   * the chord-line check, so chords written inside a text line move too.
    * Returns { lines: [{ kind: 'chords' | 'text' | 'blank', text, segments }],
    *           chords: [parsed chord per occurrence, in order],
    *           rtl: lyrics are mostly Persian, so each chord line is read right to left }
    */
-  function parseSheet(text) {
+  function parseLines(input) {
     const lines = [];
     const chords = [];
     let persianLines = 0;
     let latinLines = 0;
-    for (const raw of String(text).replace(/\r\n?/g, '\n').split('\n')) {
-      if (!raw.trim()) {
+    for (const item of input) {
+      const raw = typeof item === 'string' ? item : String(item.text);
+      const kind = typeof item === 'string' ? null : item.kind;
+      if (!raw.replace(INVISIBLE, '').trim()) {
         lines.push({ kind: 'blank', text: raw });
         continue;
       }
-      const segments = PERSIAN.test(raw) && !/[A-G]/.test(raw) ? null : parseChordLine(raw);
+      let segments = null;
+      if (kind === 'chords') segments = parseChordLine(raw, { force: true });
+      else if (!PERSIAN.test(raw) || /[A-G]/.test(raw)) segments = parseChordLine(raw);
       if (segments) {
         lines.push({ kind: 'chords', text: raw, segments });
         for (const s of segments) if (s.chord) chords.push(s.chord);
@@ -104,6 +133,11 @@
       }
     }
     return { lines, chords, rtl: persianLines >= latinLines };
+  }
+
+  /** Parses a whole sheet given as plain text. */
+  function parseSheet(text) {
+    return parseLines(String(text).replace(/\r\n?/g, '\n').split('\n'));
   }
 
   /** Chord occurrences grouped by symbol: [{ chord, count }]. */
@@ -117,7 +151,7 @@
     return [...byText.values()];
   }
 
-  LP.sheet = { parseSheet, parseChordLine, countChords };
+  LP.sheet = { parseSheet, parseLines, parseChordLine, countChords };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = LP.sheet;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

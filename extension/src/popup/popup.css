@@ -1,10 +1,10 @@
 :root {
-  --accent: #311b92;
-  --accent-soft: #efeafc;
-  --border: #e4ddf5;
-  --text: #2b2b2b;
-  --muted: #6b6b80;
-  --chord: #d44545;
+  --accent: #3e7dd0;
+  --accent-soft: #edf3fb;
+  --border: #eeeeee;
+  --text: #212121;
+  --muted: #757575;
+  --chord: #2563eb;
   color-scheme: light;
 }
 
@@ -16,7 +16,7 @@ body {
   width: 360px;
   margin: 0;
   padding: 12px;
-  background: #f6f4fb;
+  background: #f7f9fc;
   color: var(--text);
   font-family: Vazirmatn, 'IRANSans', Tahoma, 'Segoe UI', system-ui, sans-serif;
   font-size: 13px;
@@ -37,7 +37,7 @@ p {
 }
 
 .head h1 {
-  color: var(--accent);
+  color: var(--text);
   font-size: 16px;
 }
 
@@ -115,7 +115,7 @@ select {
   align-items: center;
   gap: 8px;
   padding: 6px 0;
-  border-top: 1px solid #f0edf8;
+  border-top: 1px solid #f2f2f2;
 }
 
 .song:first-child {
@@ -163,7 +163,7 @@ select {
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
-  color: #b23b3b;
+  color: #d32f2f;
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -194,4 +194,13 @@ select {
 
 .foot a:hover {
   text-decoration: underline;
+}
+
+/* Dark mode: the same inversion as on laminor.org (see content/theme.css). */
+html[data-dark] {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
+html[data-dark] img {
+  filter: hue-rotate(180deg) invert(1) contrast(1.25);
 }

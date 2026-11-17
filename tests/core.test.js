@@ -47,6 +47,20 @@ test('parseChord understands common chord symbols', () => {
   assert.equal(music.parseChord('C13').approx, true);
 });
 
+test('parseChord understands the spellings laminor.org allows', () => {
+  const quality = (text) => {
+    const chord = music.parseChord(text);
+    return chord && chord.quality;
+  };
+  assert.equal(quality('Cm/maj7'), 'mmaj7');
+  assert.equal(quality('Cmb5'), 'dim');
+  assert.equal(quality('A4'), 'sus4');
+  assert.equal(quality('C7-5'), '7');
+  assert.equal(quality('Dmaj13'), 'maj7');
+  assert.equal(music.parseChord('Cm/maj7').bass, null);
+  assert.equal(music.renderChordName(music.parseChord('Cm/maj7'), { shift: 2 }), 'Dm/maj7');
+});
+
 test('parseChord rejects words', () => {
   for (const word of ['Hello', 'Bad', 'Be', 'Dad', 'am', 'a', 'Cab', 'x2', 'Intro', '', 'آکورد', 'Admin', 'Do']) {
     assert.equal(music.parseChord(word), null, word);
@@ -206,6 +220,32 @@ test('parseSheet handles labels, repeat marks and punctuation', () => {
   assert.equal(line('Hello from the other side'), null);
   const segments = line('(Am)  C,');
   assert.equal(segments.map((s) => s.text).join(''), '(Am)  C,');
+});
+
+test('marks next to a chord stay outside it', () => {
+  const marked = (line) =>
+    sheet
+      .parseChordLine(line, { force: true })
+      .map((s) => (s.chord ? `[${s.text}]` : s.text))
+      .join('');
+  assert.equal(marked('Am_  C+  Em-  D/  G*'), '[Am]_  [C+]  [Em]-  [D]/  [G]*');
+  assert.equal(marked('(Am)  Am)_  C(add9)  Bb/D  C13'), '([Am])  [Am])_  [C(add9)]  [Bb/D]  [C13]');
+  assert.equal(sheet.parseChordLine('C(add9)', { force: true })[0].chord.quality, 'add9');
+});
+
+test('parseLines trusts the site and still finds chords in text lines', () => {
+  const parsed = sheet.parseLines([
+    { text: 'Am  x2  hello', kind: 'chords' }, // the site shows it as chords: one chord is enough
+    { text: 'باید تو رو پیدا کنم', kind: 'text' },
+    { text: '​', kind: 'text' }, // a lyric line made only of beat marks
+    { text: 'Dm   G   C', kind: 'text' }, // chords the site shows as plain text
+    { text: 'Hello Dolly', kind: 'text' },
+    { text: '', kind: null },
+  ]);
+  assert.deepEqual(parsed.lines.map((l) => l.kind), ['chords', 'text', 'blank', 'chords', 'text', 'blank']);
+  assert.deepEqual(parsed.chords.map((c) => c.text), ['Am', 'Dm', 'G', 'C']);
+  assert.equal(parsed.rtl, true);
+  assert.equal(sheet.parseChordLine('Am  x2  hello world'), null);
 });
 
 test('best capo turns a flat minor song into open shapes', () => {

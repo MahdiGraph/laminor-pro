@@ -20,6 +20,8 @@
     simplify: false, // simple chords by default
     notation: 'auto', // 'auto' | 'sharp' | 'flat'
     leftHanded: false,
+    scrollSpeed: 24, // auto-scroll speed, 10…100
+    darkMode: 'off', // 'off' | 'on' | 'auto' (follow the system)
   };
 
   async function get(keys) {
@@ -64,7 +66,7 @@
       .sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
   }
 
-  /** Calls back with (prefs | undefined, songChanged) when storage changes. */
+  /** Calls back with (prefs | undefined, songChanged, changes) when storage changes. */
   function onChange(callback) {
     ext.storage.onChanged.addListener((changes, area) => {
       if (area !== 'local') return;
